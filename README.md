@@ -48,7 +48,9 @@ Content-Type: application/json
   "account": "Checking",  // Required: Name of the account in Actual Budget
   "amount": 10.50,       // Optional: Transaction amount (defaults to 0)
   "payee": "Starbucks",  // Optional: Name of the payee (defaults to "Unknown")
-  "type": "payment"      // Optional: "payment" or "deposit" (defaults to "payment")
+  "type": "payment",     // Optional: "payment" or "deposit" (defaults to "payment")
+  "category": "category-id", // Optional: Category ID from Actual Budget
+  "cleared": true        // Optional: Whether transaction is cleared (defaults to false or env var)
 }
 ```
 

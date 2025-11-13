@@ -12,6 +12,8 @@ const transactionSchema = {
           enum: ["payment", "deposit"],
           default: "payment",
         },
+        category: { type: "string" },
+        cleared: { type: "boolean" },
       },
       required: ["account"],
     },
@@ -19,17 +21,24 @@ const transactionSchema = {
 };
 
 const createTransaction = (request) => {
-  const { payee, amount, notes, type = "payment" } = request.body;
+  const { payee, amount, notes, type = "payment", category, cleared } = request.body;
   const isDeposit = type === "deposit";
   const transactionAmount = amount !== undefined ? Math.round(amount * 100) * (isDeposit ? 1 : -1) : 0;
 
-  return {
+  const transaction = {
     payee_name: payee || "Unknown",
     amount: transactionAmount,
     notes: notes || "",
     date: new Date().toISOString().split("T")[0],
-    cleared: false,
+    cleared: cleared !== undefined ? cleared : false,
   };
+
+  // Only include category if it's provided in request
+  if (category) {
+    transaction.category = category;
+  }
+
+  return transaction;
 };
 
 const getAccountId = async (fastify, accountName) => {
