@@ -49,8 +49,8 @@ Content-Type: application/json
   "amount": 10.50,       // Optional: Transaction amount (defaults to 0)
   "payee": "Starbucks",  // Optional: Name of the payee (defaults to "Unknown")
   "type": "payment",     // Optional: "payment" or "deposit" (defaults to "payment")
-  "category": "category-id", // Optional: Category ID from Actual Budget
-  "cleared": true        // Optional: Whether transaction is cleared (defaults to false or env var)
+  "category": "Food",    // Optional: Category name from Actual Budget (looked up automatically)
+  "cleared": true        // Optional: Whether transaction is cleared (defaults to false)
 }
 ```
 

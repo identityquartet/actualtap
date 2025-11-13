@@ -20,8 +20,8 @@ const transactionSchema = {
   },
 };
 
-const createTransaction = (request) => {
-  const { payee, amount, notes, type = "payment", category, cleared } = request.body;
+const createTransaction = (request, categoryId) => {
+  const { payee, amount, notes, type = "payment", cleared } = request.body;
   const isDeposit = type === "deposit";
   const transactionAmount = amount !== undefined ? Math.round(amount * 100) * (isDeposit ? 1 : -1) : 0;
 
@@ -33,9 +33,9 @@ const createTransaction = (request) => {
     cleared: cleared !== undefined ? cleared : false,
   };
 
-  // Only include category if it's provided in request
-  if (category) {
-    transaction.category = category;
+  // Only include category if a valid category ID was found
+  if (categoryId) {
+    transaction.category = categoryId;
   }
 
   return transaction;
@@ -45,6 +45,14 @@ const getAccountId = async (fastify, accountName) => {
   const accounts = await fastify.actual.getAccounts();
   const account = accounts.find((acc) => acc.name.toLowerCase() === accountName.toLowerCase());
   return { accountId: account?.id, accounts };
+};
+
+const getCategoryId = async (fastify, categoryName) => {
+  if (!categoryName) return null;
+
+  const categories = await fastify.actual.getCategories();
+  const category = categories.find((cat) => cat.name.toLowerCase() === categoryName.toLowerCase());
+  return category?.id || null;
 };
 
 const handleTransactionResult = (result, transaction, reply, log) => {
@@ -75,8 +83,9 @@ module.exports = async (fastify, opts) => {
   fastify.post("/transaction", transactionSchema, async (request, reply) => {
     request.log.info(`Received transaction request with body: ${JSON.stringify(request.body)}`);
     try {
-      const transaction = createTransaction(request);
       const accountName = request.body.account;
+      const categoryName = request.body.category;
+
       const { accountId, accounts } = await getAccountId(fastify, accountName);
 
       if (!accountId) {
@@ -86,6 +95,12 @@ module.exports = async (fastify, opts) => {
         });
         return;
       }
+
+      // Get category ID if category name is provided
+      const categoryId = await getCategoryId(fastify, categoryName);
+
+      // Create transaction with category ID (if found)
+      const transaction = createTransaction(request, categoryId);
 
       // const result = await fastify.actual.importTransactions(accountId, [transaction]);
       const result = await fastify.actual.addTransactions(accountId, [transaction]);
